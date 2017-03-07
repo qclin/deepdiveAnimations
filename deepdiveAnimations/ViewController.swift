@@ -11,7 +11,7 @@ import UIKit
 class ViewController: UIViewController {
 
     @IBOutlet weak var alphaView: UIView!
-    var pFinal: CGPoint!
+
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -19,13 +19,10 @@ class ViewController: UIViewController {
 //        animateImage()
 //        animateRedCircles()
 //        dissolveViewIntoAnother()
-        timeCurvesAnimate()
-//        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0){
-//            self.cancelViewAnimation()
-//        }
-        let timer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { (timer) in
-            self.cancelViewAnimation()
-        }
+//        timeCurvesAnimate()
+        
+//        cancelViewAnimation()
+        cancelWithPropertyAnimator()
     }
 
     override func didReceiveMemoryWarning() {
@@ -138,25 +135,56 @@ class ViewController: UIViewController {
         animation2.startAnimation()
     }
     
-    // timeing curves 
+    var pOrig:CGPoint!
+    var pFinal: CGPoint!
+    
+    // timeing curves
     private func timeCurvesAnimate() {
         let anim = UIViewPropertyAnimator(duration: 1, timingParameters: UICubicTimingParameters( controlPoint1: CGPoint(x: 0.9, y:0.1), controlPoint2: CGPoint(x:0.7, y:0.9)))
         
 
-        let pOrig:CGPoint = self.firstView.center
+    }
+    
+    private func cancelViewAnimation(){
+        
+        self.pOrig = self.firstView.center
         self.pFinal = self.firstView.center
         self.pFinal.x += 100
         UIView.animate(withDuration: 10, animations: {
             self.firstView.center = self.pFinal
         })
+        
+        let timer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { (timer) in
+            
+            self.firstView.layer.position = self.firstView.layer.presentation()!.position // opt#3 set to current & comment out .animate
+            self.firstView.layer.removeAllAnimations()
+            UIView.animate(withDuration: 0.1){
+                self.firstView.center = self.pFinal // opt#1 set to final
+    //            self.firstView.center = self.pOrig // opt#2 set to original
+            }
+        }
     }
     
-    private func cancelViewAnimation(){
-        self.firstView.layer.position = self.firstView.layer.presentation()!.position
-        self.firstView.layer.removeAllAnimations()
-        UIView.animate(withDuration: 0.1){
-            self.firstView.center = self.pFinal
+    private func cancelWithPropertyAnimator(){
+        let animation = UIViewPropertyAnimator(duration: 10, timingParameters: UICubicTimingParameters())
+        animation.addAnimations {
+            self.firstView.center.x += 100
         }
+        animation.startAnimation()
+
+        
+        
+        let timer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { (timer) in
+            print("4 secs ")
+            // pause is necessary to make changes
+            animation.pauseAnimation()
+            // 1 - cancel and hurrying home to its end
+//            animation.continueAnimation(withTimingParameters: UICubicTimingParameters(animationCurve: .easeOut), durationFactor: 0.1)
+            // 2 - cancel and return to original postion
+            animation.isReversed = true
+            animation.continueAnimation(withTimingParameters: UICubicTimingParameters(animationCurve: .easeOut), durationFactor: 0.1)
+        }
+
     }
 }
 
