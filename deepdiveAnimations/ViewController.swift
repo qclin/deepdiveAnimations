@@ -11,12 +11,21 @@ import UIKit
 class ViewController: UIViewController {
 
     @IBOutlet weak var alphaView: UIView!
+    var pFinal: CGPoint!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
 //        animateImage()
 //        animateRedCircles()
-        dissolveViewIntoAnother()
+//        dissolveViewIntoAnother()
+        timeCurvesAnimate()
+//        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now()+3.0){
+//            self.cancelViewAnimation()
+//        }
+        let timer = Timer.scheduledTimer(withTimeInterval: 4.0, repeats: false) { (timer) in
+            self.cancelViewAnimation()
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -133,7 +142,22 @@ class ViewController: UIViewController {
     private func timeCurvesAnimate() {
         let anim = UIViewPropertyAnimator(duration: 1, timingParameters: UICubicTimingParameters( controlPoint1: CGPoint(x: 0.9, y:0.1), controlPoint2: CGPoint(x:0.7, y:0.9)))
         
-        
+
+        let pOrig:CGPoint = self.firstView.center
+        self.pFinal = self.firstView.center
+        self.pFinal.x += 100
+        UIView.animate(withDuration: 10, animations: {
+            self.firstView.center = self.pFinal
+        })
+    }
+    
+    private func cancelViewAnimation(){
+        self.firstView.layer.position = self.firstView.layer.presentation()!.position
+        self.firstView.layer.removeAllAnimations()
+        UIView.animate(withDuration: 0.1){
+            self.firstView.center = self.pFinal
+        }
     }
 }
+
 
